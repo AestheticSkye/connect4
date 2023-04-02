@@ -1,6 +1,6 @@
-use std::io::{ Write, self };
-use std::process::exit;
 use colored::Colorize;
+use std::io::{self, Write};
+use std::process::exit;
 
 pub struct Game {
     pub board: Vec<Vec<char>>,
@@ -9,7 +9,7 @@ pub struct Game {
     rows: usize,
     cols: usize,
     winning_places: Vec<(usize, usize)>,
-    piece_count: usize
+    piece_count: usize,
 }
 
 impl Game {
@@ -19,7 +19,7 @@ impl Game {
         if Game::ask_for_game_type() {
             game = Game::generate_custom_game()
         } else {
-            game = Game::new(vec!['X','O'], 7, 6, 4)
+            game = Game::new(vec!['X', 'O'], 7, 6, 4)
         }
 
         while game.winning_places.is_empty() {
@@ -58,13 +58,17 @@ impl Game {
     }
 
     fn run_turn(&mut self, index: usize, player: char) {
-        println!("Player {} ({}), where would you like to put your piece?", index + 1, player);
+        println!(
+            "Player {} ({}), where would you like to put your piece?",
+            index + 1,
+            player
+        );
         loop {
             let position = Game::get_integer(0, Some(self.cols as i32));
 
             if position < 0 || position > self.cols as i32 {
                 println!("Invalid Choice");
-                continue
+                continue;
             }
 
             if self.board[0][position as usize - 1] != ' ' {
@@ -72,7 +76,7 @@ impl Game {
             } else {
                 self.place_piece(position as usize - 1, player);
                 self.piece_count -= 1;
-                return
+                return;
             }
         }
     }
@@ -116,11 +120,13 @@ impl Game {
                 io::stdout().flush().unwrap();
 
                 let mut choice = String::new();
-                io::stdin().read_line(&mut choice).expect("TODO: panic message");
+                io::stdin()
+                    .read_line(&mut choice)
+                    .expect("TODO: panic message");
 
                 if choice.trim().len() > 1 {
                     println!("Invalid Choice");
-                    continue
+                    continue;
                 }
 
                 if let Some(choice_char) = choice.trim().chars().next() {
@@ -128,7 +134,7 @@ impl Game {
                         println!("Character Taken")
                     } else {
                         players.push(choice_char);
-                        break
+                        break;
                     }
                 } else {
                     println!("Invalid Choice");
@@ -136,7 +142,12 @@ impl Game {
             }
         }
 
-        Game::new(players, cols as usize, rows as usize, num_to_connect as usize)
+        Game::new(
+            players,
+            cols as usize,
+            rows as usize,
+            num_to_connect as usize,
+        )
     }
 
     fn get_integer(min: i32, max: Option<i32>) -> i32 {
@@ -144,7 +155,9 @@ impl Game {
         io::stdout().flush().unwrap();
 
         let mut choice = String::new();
-        io::stdin().read_line(&mut choice).expect("TODO: panic message");
+        io::stdin()
+            .read_line(&mut choice)
+            .expect("TODO: panic message");
 
         let choice_int = choice.trim().parse().unwrap_or(-1);
 
@@ -153,7 +166,7 @@ impl Game {
             -1
         } else {
             choice_int
-        }
+        };
     }
 
     /// Asks user for the game type they want
@@ -165,12 +178,14 @@ impl Game {
             io::stdout().flush().unwrap();
 
             let mut choice = String::new();
-            io::stdin().read_line(&mut choice).expect("TODO: panic message");
+            io::stdin()
+                .read_line(&mut choice)
+                .expect("TODO: panic message");
 
             if choice.trim().to_ascii_lowercase() == "d" {
-                return false
+                return false;
             } else if choice.trim().to_ascii_lowercase() == "c" {
-                return true
+                return true;
             } else if choice.trim() == "?" {
                 println!("The default game uses two players (X and O), has 6 rows and 7 columns and requires a match of 4 to win.");
                 println!("In a custom game, these can all be changed.")
@@ -189,7 +204,6 @@ impl Game {
                 } else {
                     print!("[{}]", item)
                 }
-
             }
             println!()
         }
@@ -207,7 +221,7 @@ impl Game {
         for row in (0..self.rows).rev() {
             if self.board[row][place] == ' ' {
                 self.board[row][place] = player;
-                return
+                return;
             }
         }
     }
@@ -215,9 +229,12 @@ impl Game {
     fn calculate_match(&mut self, player: char) -> bool {
         // Check for horizontal matches
         for row in 0..self.rows {
-            for col in 0..self.cols-self.num_to_connect+1 {
-                if self.board[row][col..col+self.num_to_connect].iter().all(|&x| x == player) {
-                    for piece in col..col+self.num_to_connect {
+            for col in 0..self.cols - self.num_to_connect + 1 {
+                if self.board[row][col..col + self.num_to_connect]
+                    .iter()
+                    .all(|&x| x == player)
+                {
+                    for piece in col..col + self.num_to_connect {
                         self.winning_places.push((row, piece))
                     }
                     return true;
@@ -226,10 +243,10 @@ impl Game {
         }
 
         // Check for vertical matches
-        for row in 0..self.rows-self.num_to_connect+1 {
+        for row in 0..self.rows - self.num_to_connect + 1 {
             for col in 0..self.cols {
-                if (0..self.num_to_connect).all(|i| self.board[row+i][col] == player) {
-                    for piece in row..row+self.num_to_connect {
+                if (0..self.num_to_connect).all(|i| self.board[row + i][col] == player) {
+                    for piece in row..row + self.num_to_connect {
                         self.winning_places.push((piece, col))
                     }
                     return true;
@@ -238,9 +255,9 @@ impl Game {
         }
 
         // Check for diagonal matches (top-left to bottom-right)
-        for row in 0..self.rows-self.num_to_connect+1 {
-            for col in 0..self.cols-self.num_to_connect+1 {
-                if (0..self.num_to_connect).all(|i| self.board[row+i][col+i] == player) {
+        for row in 0..self.rows - self.num_to_connect + 1 {
+            for col in 0..self.cols - self.num_to_connect + 1 {
+                if (0..self.num_to_connect).all(|i| self.board[row + i][col + i] == player) {
                     for i in 0..self.num_to_connect {
                         self.winning_places.push((row + i, col + i))
                     }
@@ -250,9 +267,9 @@ impl Game {
         }
 
         // Check for diagonal matches (top-right to bottom-left)
-        for row in 0..self.rows-self.num_to_connect+1 {
-            for col in self.num_to_connect-1..self.cols {
-                if (0..self.num_to_connect).all(|i| self.board[row+i][col-i] == player) {
+        for row in 0..self.rows - self.num_to_connect + 1 {
+            for col in self.num_to_connect - 1..self.cols {
+                if (0..self.num_to_connect).all(|i| self.board[row + i][col - i] == player) {
                     for i in 0..self.num_to_connect {
                         self.winning_places.push((row + i, col - i))
                     }
