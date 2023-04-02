@@ -165,12 +165,12 @@ impl Game {
 
         let choice_int = choice.trim().parse().unwrap_or(-1);
 
-        return if choice_int < min || choice_int > max.unwrap_or(1000) {
+        if choice_int < min || choice_int > max.unwrap_or(1000) {
             println!("Invalid Choice");
             None
         } else {
             Some(choice_int)
-        };
+        }
     }
 
     /// Asks user for the game type they want
