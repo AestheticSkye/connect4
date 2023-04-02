@@ -36,6 +36,7 @@ impl Game {
                     exit(0)
                 }
                 if game.piece_count == 0 {
+                    game.print_pieces();
                     println!("~~~~~");
                     println!("Tie!!");
                     println!("~~~~~");
@@ -64,19 +65,19 @@ impl Game {
             player
         );
         loop {
-            let position = Game::get_integer(0, Some(self.cols as i32));
+            if let Some(position) = Game::get_integer(0, Some(self.cols as i32)) {
+                if position < 0 || position > self.cols as i32 {
+                    println!("Invalid Choice");
+                    continue;
+                }
 
-            if position < 0 || position > self.cols as i32 {
-                println!("Invalid Choice");
-                continue;
-            }
-
-            if self.board[0][position as usize - 1] != ' ' {
-                println!("Column Full")
-            } else {
-                self.place_piece(position as usize - 1, player);
-                self.piece_count -= 1;
-                return;
+                if self.board[0][position as usize - 1] != ' ' {
+                    println!("Column Full")
+                } else {
+                    self.place_piece(position as usize - 1, player);
+                    self.piece_count -= 1;
+                    return;
+                }
             }
         }
     }
@@ -90,25 +91,28 @@ impl Game {
 
         println!("How many rows do you want? [min 3]");
         while rows == 0 {
-            rows = Game::get_integer(3, None)
+            if let Some(new_rows) = Game::get_integer(3, None) {
+                rows = new_rows
+            }
         }
 
         println!("How many columns do you want? [min 3]");
         while cols == 0 {
-            cols = Game::get_integer(3, None)
+            if let Some(new_cols) = Game::get_integer(3, None) {
+                cols = new_cols
+            }
         }
 
         println!("How many players do you want? It is recommended for a smaller amount of players on a smaller board [min 2]");
         while player_count == 0 {
-            player_count = Game::get_integer(2, None)
+            if let Some(new_player_count) = Game::get_integer(2, None) {
+                player_count = new_player_count
+            }
         }
 
         println!("How many pieces need to connect for someone to win? This must be less than both row and column amount [min 3]");
         while num_to_connect == 0 {
-            let amount = Game::get_integer(3, None);
-            if amount > cols || amount > rows {
-                println!("Invalid Input")
-            } else {
+            if let Some(amount) = Game::get_integer(3, None) {
                 num_to_connect = amount
             }
         }
@@ -150,7 +154,7 @@ impl Game {
         )
     }
 
-    fn get_integer(min: i32, max: Option<i32>) -> i32 {
+    fn get_integer(min: i32, max: Option<i32>) -> Option<i32> {
         print!("> ");
         io::stdout().flush().unwrap();
 
@@ -161,11 +165,11 @@ impl Game {
 
         let choice_int = choice.trim().parse().unwrap_or(-1);
 
-        return if choice_int < min && choice_int > max.unwrap_or(1000) {
+        return if choice_int < min || choice_int > max.unwrap_or(1000) {
             println!("Invalid Choice");
-            -1
+            None
         } else {
-            choice_int
+            Some(choice_int)
         };
     }
 
