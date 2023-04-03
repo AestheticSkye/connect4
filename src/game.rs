@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use std::process::exit;
 
 pub struct Game {
-    pub board: Vec<Vec<char>>,
+    board: Vec<Vec<char>>,
     players: Vec<char>,
     num_to_connect: usize,
     rows: usize,
