@@ -1,6 +1,5 @@
-use colored::Colorize;
-use std::io::{self, Write};
-use std::process::exit;
+use colored::{Color, Colorize};
+use std::io::{ self, Write };
 
 pub struct Game {
     board: Vec<Vec<char>>,
@@ -19,7 +18,7 @@ impl Game {
         if Game::ask_for_game_type() {
             game = Game::generate_custom_game()
         } else {
-            game = Game::new(vec!['X', 'O'], 7, 6, 4)
+            game = Game::new(vec!['X', 'O'], 10, 6, 4)
         }
 
         while game.winning_places.is_empty() {
@@ -33,14 +32,14 @@ impl Game {
                     println!("{border}");
                     println!("{win_message}");
                     println!("{border}");
-                    exit(0)
+                    return
                 }
                 if game.piece_count == 0 {
                     game.print_pieces();
                     println!("~~~~~");
                     println!("Tie!!");
                     println!("~~~~~");
-                    exit(0)
+                    return
                 }
             }
         }
@@ -65,15 +64,8 @@ impl Game {
             player
         );
         loop {
-            if let Some(position) = Game::get_integer(0, Some(self.cols as i32)) {
-                if position < 0 || position > self.cols as i32 {
-                    println!("Invalid Choice");
-                    continue;
-                }
-
-                if self.board[0][position as usize - 1] != ' ' {
-                    println!("Column Full")
-                } else {
+            if let Some(position) = Game::get_integer(1, Some(self.cols as i32)) {
+                if self.board[0][position as usize - 1] == ' ' {
                     self.place_piece(position as usize - 1, player);
                     self.piece_count -= 1;
                     return;
@@ -167,13 +159,13 @@ impl Game {
 
         if choice_int < min || choice_int > max.unwrap_or(1000) {
             println!("Invalid Choice");
-            None
-        } else {
-            Some(choice_int)
+            return None
         }
+        Some(choice_int)
     }
 
     /// Asks user for the game type they want
+    ///
     /// returns true if type is custom
     fn ask_for_game_type() -> bool {
         println!("Would you like to use the default preset, or to customise your game? [d,c,?]");
@@ -186,37 +178,55 @@ impl Game {
                 .read_line(&mut choice)
                 .expect("TODO: panic message");
 
-            if choice.trim().to_ascii_lowercase() == "d" {
-                return false;
-            } else if choice.trim().to_ascii_lowercase() == "c" {
-                return true;
-            } else if choice.trim() == "?" {
-                println!("The default game uses two players (X and O), has 6 rows and 7 columns and requires a match of 4 to win.");
-                println!("In a custom game, these can all be changed.")
-            } else {
-                println!("Invalid choice")
+            match choice.trim().to_lowercase().as_str() {
+                "d" => return false,
+                "c" => return true,
+                "?" => {
+                    println!("The default game uses two players (X and O), has 6 rows and 7 columns and requires a match of 4 to win.");
+                    println!("In a custom game, these can all be changed.")
+                }
+                _ => println!("Invalid choice")
             }
         }
     }
 
     fn print_pieces(&self) {
+        fn print_piece(item: &char, color: Color, cols: usize) {
+            if cols < 10 {
+                print!("[{}]", item.to_string().color(color))
+            } else {
+                print!("[{}] ", item.to_string().color(color))
+            }
+        }
         println!();
         for (row_index, row) in self.board.iter().enumerate() {
             for (column_index, item) in row.iter().enumerate() {
                 if self.winning_places.contains(&(row_index, column_index)) {
-                    print!("[{}]", item.to_string().red())
+                    print_piece(item, Color::Red, self.cols)
                 } else {
-                    print!("[{}]", item)
+                    print_piece(item, Color::White, self.cols)
                 }
             }
             println!()
         }
         for _ in 0..self.cols {
-            print!("---")
+            if self.cols > 9 {
+                print!("----")
+            } else {
+                print!("---")
+            }
         }
         println!();
         for row in 1..self.cols + 1 {
-            print!(" {row} ")
+            if self.cols > 9 {
+                if row < 10 {
+                    print!(" {row}  ")
+                } else {
+                    print!(" {row} ")
+                }
+            } else {
+                print!(" {row} ")
+            }
         }
         println!("\n")
     }
