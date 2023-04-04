@@ -18,14 +18,14 @@ impl Game {
         if Game::ask_for_game_type() {
             game = Game::generate_custom_game()
         } else {
-            game = Game::new(vec!['X', 'O'], 10, 6, 4)
+            game = Game::new(vec!['X', 'O'], 7, 6, 4)
         }
 
         while game.winning_places.is_empty() {
-            for (index, player) in game.players.clone().iter().enumerate() {
+            for (index, player) in game.players.clone().into_iter().enumerate() {
                 game.print_pieces();
-                game.run_turn(index, *player);
-                if game.calculate_match(*player) {
+                game.run_turn(index, player);
+                if game.calculate_match(player) {
                     let win_message = format!("Player {} ({}) Wins!!", index + 1, player);
                     let border = "~".repeat(win_message.len());
                     game.print_pieces();
